@@ -107,7 +107,7 @@ class _LoginPageState extends State<LoginPage> {
                 width: double.infinity,
                 // ユーザー登録ボタン
                 child: RaisedButton(
-                  color: Colors.brown,
+                  color: Colors.cyan,
                   textColor: Colors.white,
                   child: Text('ユーザー登録'),
                   onPressed: () async {
@@ -130,8 +130,12 @@ class _LoginPageState extends State<LoginPage> {
                       Firestore.instance
                           .collection('guest') // コレクションID指定
                           .document(email) // ドキュメントID自動生成
-                          .setData(
-                              {'date': date, 'name': '名無し', 'mail': email});
+                          .setData({
+                        'date': date,
+                        'name': '名無し',
+                        'mail': email,
+                        'okuharayn': false,
+                      });
                       await Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (context) {
                           return ChatPage();
@@ -150,7 +154,7 @@ class _LoginPageState extends State<LoginPage> {
                 width: double.infinity,
                 // ログイン登録ボタン
                 child: OutlineButton(
-                  textColor: Colors.brown,
+                  textColor: Colors.cyan[700],
                   child: Text('ログイン'),
                   onPressed: () async {
                     try {
@@ -215,7 +219,7 @@ class _ChatPageState extends State<ChatPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.brown,
+        backgroundColor: Colors.cyan,
         title: Text('チャット'),
         actions: <Widget>[
           IconButton(
@@ -234,7 +238,11 @@ class _ChatPageState extends State<ChatPage> {
             icon: Icon(Icons.person),
             color: Colors.white,
             onPressed: () async {
-              if (user.email == 'gk3gogogo@gmail.com') {
+              var okuharayn = await Firestore.instance
+                  .collection('guest')
+                  .document(user.email)
+                  .get();
+              if (okuharayn['okuharayn']) {
                 await Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) {
                     return ListPage();
@@ -243,7 +251,7 @@ class _ChatPageState extends State<ChatPage> {
               } else {
                 await Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) {
-                    return ListPage();
+                    return ChatPage();
                   }),
                 );
               }
@@ -269,7 +277,7 @@ class _ChatPageState extends State<ChatPage> {
                       .collection('guest')
                       .document(user.email)
                       .collection('message')
-                      .orderBy('date')
+                      .orderBy('date', descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
                     // データが取得できた場合
@@ -278,12 +286,27 @@ class _ChatPageState extends State<ChatPage> {
                           snapshot.data.documents;
                       // 取得した投稿メッセージ一覧を元にリスト表示
                       return ListView(
+                        reverse: true,
                         children: documents.map((document) {
                           return Card(
-                            margin: EdgeInsets.fromLTRB(0, 5, 50, 0),
-                            child: ListTile(
-                              leading: Icon(Icons.star),
-                              title: Text(document['text']),
+                            margin: document['email'] == 'gk3gogogo@gmail.com'
+                                ? EdgeInsets.fromLTRB(0, 10, 50, 0)
+                                : EdgeInsets.fromLTRB(50, 10, 0, 0),
+                            child: Container(
+                              color: document['email'] == 'gk3gogogo@gmail.com'
+                                  ? Colors.cyan[50]
+                                  : Colors.cyan[200],
+                              child: ListTile(
+                                leading:
+                                    document['email'] == 'gk3gogogo@gmail.com'
+                                        ? Icon(Icons.star)
+                                        : null,
+                                title: Text(document['text']),
+                                trailing:
+                                    document['email'] == 'gk3gogogo@gmail.com'
+                                        ? null
+                                        : Icon(Icons.star),
+                              ),
                             ),
                           );
                         }).toList(),
@@ -296,7 +319,7 @@ class _ChatPageState extends State<ChatPage> {
                   },
                 ),
               ),
-              SizedBox(height: 60),
+              SizedBox(height: 70),
             ],
           ),
           SafeArea(
@@ -306,7 +329,7 @@ class _ChatPageState extends State<ChatPage> {
                 Container(
                   height: 60,
                   padding: EdgeInsets.fromLTRB(15, 0, 0, 0),
-                  color: Colors.brown,
+                  color: Colors.cyan,
                   child: Row(
                     children: <Widget>[
                       Flexible(
@@ -326,28 +349,34 @@ class _ChatPageState extends State<ChatPage> {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.done_outline),
+                        icon: Icon(
+                          Icons.done_outline,
+                          color: Colors.cyan[800],
+                        ),
                         onPressed: () async {
-                          final date = DateTime.now()
-                              .toLocal()
-                              .toIso8601String(); // 現在の日時
-                          final email = user.email; // AddPostPage のデータを参照
-                          // 投稿データ用ドキュメント作成
-                          await Firestore.instance
-                              .collection('guest') // コレクションID指定
-                              .document(email)
-                              .collection('message')
-                              .document()
-                              .setData({
-                            'text': messageText,
-                            'email': email,
-                            'date': date
-                          });
-                          await Firestore.instance
-                              .collection('guest') // コレクションID指定
-                              .document(email)
-                              .updateData({'date': date});
-                          _messageTextController.clear();
+                          if (messageText != '') {
+                            final date = DateTime.now()
+                                .toLocal()
+                                .toIso8601String(); // 現在の日時
+                            final email = user.email; // AddPostPage のデータを参照
+                            // 投稿データ用ドキュメント作成
+                            await Firestore.instance
+                                .collection('guest') // コレクションID指定
+                                .document(email)
+                                .collection('message')
+                                .document()
+                                .setData({
+                              'text': messageText,
+                              'email': email,
+                              'date': date
+                            });
+                            await Firestore.instance
+                                .collection('guest') // コレクションID指定
+                                .document(email)
+                                .updateData({'date': date});
+                            _messageTextController.clear();
+                            messageText = '';
+                          }
                           FocusScope.of(context).requestFocus(new FocusNode());
                         },
                       ),
@@ -363,6 +392,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 }
 
+// 管理者用ゲスト管理Widget
 class ListPage extends StatefulWidget {
   @override
   _ListPageState createState() => _ListPageState();
@@ -431,6 +461,7 @@ class _ListPageState extends State<ListPage> {
   }
 }
 
+// 管理者用チャットWidget
 class ListChatPage extends StatefulWidget {
   final String mailad;
   const ListChatPage(this.mailad);
