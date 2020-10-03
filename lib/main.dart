@@ -219,7 +219,20 @@ class _ChatPageState extends State<ChatPage> {
         title: Text('チャット'),
         actions: <Widget>[
           IconButton(
+            icon: Icon(Icons.arrow_back),
+            color: Colors.white,
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              await Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) {
+                  return LoginPage();
+                }),
+              );
+            },
+          ),
+          IconButton(
             icon: Icon(Icons.person),
+            color: Colors.white,
             onPressed: () async {
               if (user.email == 'gk3gogogo@gmail.com') {
                 await Navigator.of(context).push(
@@ -396,7 +409,7 @@ class _ListPageState extends State<ListPage> {
                           onTap: () async {
                             await Navigator.of(context).push(
                               MaterialPageRoute(builder: (context) {
-                                return ItemDetail(document['mail']);
+                                return ListChatPage(document['mail']);
                               }),
                             );
                           },
@@ -418,18 +431,163 @@ class _ListPageState extends State<ListPage> {
   }
 }
 
-class ItemDetail extends StatelessWidget {
-  final String index;
-  ItemDetail(this.index);
+class ListChatPage extends StatefulWidget {
+  final String mailad;
+  const ListChatPage(this.mailad);
+
+  @override
+  _ListChatPageState createState() => _ListChatPageState();
+}
+
+class _ListChatPageState extends State<ListChatPage> {
+  // 入力した投稿メッセージ
+  final _messageTextController = TextEditingController();
+  String messageText = '';
+
+  @override
+  void dispose() {
+    _messageTextController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    // ユーザー情報を受け取る
+
+    final UserState userState = Provider.of<UserState>(context);
+    final FirebaseUser user = userState.user;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("item detail"),
+        backgroundColor: Colors.brown,
+        title: Text('チャット'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.person),
+            onPressed: () async {
+              if (user.email == 'gk3gogogo@gmail.com') {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) {
+                    return ListPage();
+                  }),
+                );
+              } else {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) {
+                    return ListPage();
+                  }),
+                );
+              }
+            },
+          ),
+        ],
       ),
-      body: Center(
-        child: Text("this page is item$index"),
+      body: Stack(
+        children: [
+          Column(
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.all(8),
+                child: Text('ログイン情報：${widget.mailad}'),
+              ),
+              Expanded(
+                // StreamBuilder
+                // 非同期処理の結果を元にWidgetを作れる
+                child: StreamBuilder<QuerySnapshot>(
+                  // 投稿メッセージ一覧を取得（非同期処理）
+                  // 投稿日時でソート
+                  stream: Firestore.instance
+                      .collection('guest')
+                      .document(widget.mailad)
+                      .collection('message')
+                      .orderBy('date')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    // データが取得できた場合
+                    if (snapshot.hasData) {
+                      final List<DocumentSnapshot> documents =
+                          snapshot.data.documents;
+                      // 取得した投稿メッセージ一覧を元にリスト表示
+                      return ListView(
+                        children: documents.map((document) {
+                          return Card(
+                            margin: EdgeInsets.fromLTRB(0, 5, 50, 0),
+                            child: ListTile(
+                              leading: Icon(Icons.star),
+                              title: Text(document['text']),
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    }
+                    // データが読込中の場合
+                    return Center(
+                      child: Text('読込中...'),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: 60),
+            ],
+          ),
+          SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  height: 60,
+                  padding: EdgeInsets.fromLTRB(15, 0, 0, 0),
+                  color: Colors.brown,
+                  child: Row(
+                    children: <Widget>[
+                      Flexible(
+                        child: TextFormField(
+                          decoration: InputDecoration(
+                            hintText: 'メッセージ',
+                          ),
+                          controller: _messageTextController,
+                          keyboardType: TextInputType.multiline,
+                          maxLines: 3,
+                          minLines: 1,
+                          onChanged: (String value) {
+                            setState(() {
+                              messageText = value;
+                            });
+                          },
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.done_outline),
+                        onPressed: () async {
+                          final date = DateTime.now()
+                              .toLocal()
+                              .toIso8601String(); // 現在の日時
+                          // 投稿データ用ドキュメント作成
+                          await Firestore.instance
+                              .collection('guest') // コレクションID指定
+                              .document(widget.mailad)
+                              .collection('message')
+                              .document()
+                              .setData({
+                            'text': messageText,
+                            'email': 'gk3gogogo@gmail.com',
+                            'date': date
+                          });
+                          await Firestore.instance
+                              .collection('guest') // コレクションID指定
+                              .document(widget.mailad)
+                              .updateData({'date': date});
+                          _messageTextController.clear();
+                          FocusScope.of(context).requestFocus(new FocusNode());
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
