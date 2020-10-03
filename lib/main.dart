@@ -72,16 +72,25 @@ class _LoginPageState extends State<LoginPage> {
             children: <Widget>[
               // メールアドレス入力
               TextFormField(
-                decoration: InputDecoration(labelText: 'メールアドレス'),
+                decoration: InputDecoration(
+                  labelText: 'メールアドレス',
+                  border: const OutlineInputBorder(),
+                ),
                 onChanged: (String value) {
                   setState(() {
                     email = value;
                   });
                 },
               ),
+              SizedBox(
+                height: 3,
+              ),
               // パスワード入力
               TextFormField(
-                decoration: InputDecoration(labelText: 'パスワード'),
+                decoration: InputDecoration(
+                  labelText: 'パスワード',
+                  border: const OutlineInputBorder(),
+                ),
                 obscureText: true,
                 onChanged: (String value) {
                   setState(() {
@@ -387,7 +396,7 @@ class _ListPageState extends State<ListPage> {
                           onTap: () async {
                             await Navigator.of(context).push(
                               MaterialPageRoute(builder: (context) {
-                                return ChatPage();
+                                return ItemDetail(document['mail']);
                               }),
                             );
                           },
@@ -404,6 +413,23 @@ class _ListPageState extends State<ListPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class ItemDetail extends StatelessWidget {
+  final String index;
+  ItemDetail(this.index);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("item detail"),
+      ),
+      body: Center(
+        child: Text("this page is item$index"),
       ),
     );
   }
