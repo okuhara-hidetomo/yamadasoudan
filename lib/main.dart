@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:bubble/bubble.dart';
+import 'package:image_picker/image_picker.dart';
 
 void main() {
   // 最初に表示するWidget
@@ -28,18 +30,17 @@ class ChatApp extends StatelessWidget {
     return ChangeNotifierProvider<UserState>.value(
       value: userState,
       child: MaterialApp(
-        // 右上に表示される"debug"ラベルを消す
-        debugShowCheckedModeBanner: false,
-        // アプリ名
-        title: 'ChatApp',
-        theme: ThemeData(
-          // テーマカラー
-          primarySwatch: Colors.blue,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
-        // ログイン画面を表示
-        home: LoginPage(),
-      ),
+          // 右上に表示される"debug"ラベルを消す
+          debugShowCheckedModeBanner: false,
+          // アプリ名
+          title: 'ChatApp',
+          theme: ThemeData(
+            // テーマカラー
+            primarySwatch: Colors.blue,
+            visualDensity: VisualDensity.adaptivePlatformDensity,
+          ),
+          // ログイン画面を表示
+          home: LoginPage()),
     );
   }
 }
@@ -64,129 +65,148 @@ class _LoginPageState extends State<LoginPage> {
     final UserState userState = Provider.of<UserState>(context);
 
     return Scaffold(
-      body: Center(
-        child: Container(
-          padding: EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              // メールアドレス入力
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'メールアドレス',
-                  border: const OutlineInputBorder(),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Container(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                // メールアドレス入力
+                SizedBox(height: 70),
+                Container(
+                  height: 150,
+                  width: 150,
+                  child: Image.asset('images/rogoicon.png'),
                 ),
-                onChanged: (String value) {
-                  setState(() {
-                    email = value;
-                  });
-                },
-              ),
-              SizedBox(
-                height: 3,
-              ),
-              // パスワード入力
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'パスワード',
-                  border: const OutlineInputBorder(),
-                ),
-                obscureText: true,
-                onChanged: (String value) {
-                  setState(() {
-                    password = value;
-                  });
-                },
-              ),
-              Container(
-                padding: EdgeInsets.all(8),
-                // メッセージ表示
-                child: Text(infoText),
-              ),
-              Container(
-                width: double.infinity,
-                // ユーザー登録ボタン
-                child: RaisedButton(
-                  color: Colors.cyan,
-                  textColor: Colors.white,
-                  child: Text('ユーザー登録'),
-                  onPressed: () async {
-                    try {
-                      // メール/パスワードでユーザー登録
-                      final FirebaseAuth auth = FirebaseAuth.instance;
-                      final AuthResult result =
-                          await auth.createUserWithEmailAndPassword(
-                        email: email,
-                        password: password,
-                      );
-                      final FirebaseUser user = result.user;
+                SizedBox(height: 20),
 
-                      // ユーザー情報を更新
-                      userState.setUser(user);
-
-                      final date = DateTime(2000, 1, 1);
-                      // ユーザー登録に成功した場合
-                      // チャット画面に遷移＋ログイン画面を破棄
-                      Firestore.instance
-                          .collection('guest') // コレクションID指定
-                          .document(email) // ドキュメントID自動生成
-                          .setData({
-                        'date': date,
-                        'name': '名無し',
-                        'mail': email,
-                        'okuharayn': false,
-                      });
-                      await Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (context) {
-                          return ChatPage();
-                        }),
-                      );
-                    } catch (e) {
-                      // ユーザー登録に失敗した場合
-                      setState(() {
-                        infoText = "登録に失敗しました：${e.message}";
-                      });
-                    }
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'メールアドレス',
+                    border: const OutlineInputBorder(),
+                  ),
+                  onChanged: (String value) {
+                    setState(() {
+                      email = value;
+                    });
                   },
                 ),
-              ),
-              Container(
-                width: double.infinity,
-                // ログイン登録ボタン
-                child: OutlineButton(
-                  textColor: Colors.cyan[700],
-                  child: Text('ログイン'),
-                  onPressed: () async {
-                    try {
-                      // メール/パスワードでログイン
-                      final FirebaseAuth auth = FirebaseAuth.instance;
-                      final AuthResult result =
-                          await auth.signInWithEmailAndPassword(
-                        email: email,
-                        password: password,
-                      );
-                      final FirebaseUser user = result.user;
-
-                      // ユーザー情報を更新
-                      userState.setUser(user);
-
-                      // ログインに成功した場合
-                      // チャット画面に遷移＋ログイン画面を破棄
-                      await Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (context) {
-                          return ChatPage();
-                        }),
-                      );
-                    } catch (e) {
-                      // ログインに失敗した場合
-                      setState(() {
-                        infoText = "ログインに失敗しました：${e.message}";
-                      });
-                    }
+                SizedBox(
+                  height: 3,
+                ),
+                // パスワード入力
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'パスワード',
+                    border: const OutlineInputBorder(),
+                  ),
+                  obscureText: true,
+                  onChanged: (String value) {
+                    setState(() {
+                      password = value;
+                    });
                   },
                 ),
-              ),
-            ],
+                Container(
+                  padding: EdgeInsets.all(8),
+                  // メッセージ表示
+                  child: Text(infoText),
+                ),
+                Container(
+                  width: double.infinity,
+                  // ユーザー登録ボタン
+                  child: RaisedButton(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                    color: Colors.orange[700],
+                    textColor: Colors.white,
+                    child: Text('ユーザー登録'),
+                    onPressed: () async {
+                      try {
+                        // メール/パスワードでユーザー登録
+                        final FirebaseAuth auth = FirebaseAuth.instance;
+                        final AuthResult result =
+                            await auth.createUserWithEmailAndPassword(
+                          email: email,
+                          password: password,
+                        );
+                        final FirebaseUser user = result.user;
+
+                        // ユーザー情報を更新
+                        userState.setUser(user);
+
+                        final date = DateTime(2000, 1, 1);
+                        // ユーザー登録に成功した場合
+                        // チャット画面に遷移＋ログイン画面を破棄
+                        Firestore.instance
+                            .collection('guest') // コレクションID指定
+                            .document(email) // ドキュメントID自動生成
+                            .setData({
+                          'date': date,
+                          'name': '名無し',
+                          'mail': email,
+                          'okuharayn': false,
+                        });
+
+                        await Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (context) {
+                            return ChatPage();
+                          }),
+                        );
+                      } catch (e) {
+                        // ユーザー登録に失敗した場合
+                        setState(() {
+                          infoText = "登録に失敗しました：${e.message}";
+                        });
+                      }
+                    },
+                    splashColor: Colors.orange[900],
+                  ),
+                ),
+                Container(
+                  width: double.infinity,
+                  // ログイン登録ボタン
+                  child: OutlineButton(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                    textColor: Colors.orange[900],
+                    child: Text('ログイン'),
+                    onPressed: () async {
+                      try {
+                        // メール/パスワードでログイン
+                        final FirebaseAuth auth = FirebaseAuth.instance;
+                        final AuthResult result =
+                            await auth.signInWithEmailAndPassword(
+                          email: email,
+                          password: password,
+                        );
+                        final FirebaseUser user = result.user;
+
+                        // ユーザー情報を更新
+                        userState.setUser(user);
+
+                        // ログインに成功した場合
+                        // チャット画面に遷移＋ログイン画面を破棄
+                        await Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (context) {
+                            return ChatPage();
+                          }),
+                        );
+                      } catch (e) {
+                        // ログインに失敗した場合
+                        setState(() {
+                          infoText = "ログインに失敗しました：${e.message}";
+                        });
+                      }
+                    },
+                    splashColor: Colors.grey[300],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -219,7 +239,7 @@ class _ChatPageState extends State<ChatPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.cyan,
+        backgroundColor: Colors.orange,
         title: Text('チャット'),
         actions: <Widget>[
           IconButton(
@@ -270,56 +290,64 @@ class _ChatPageState extends State<ChatPage> {
               Expanded(
                 // StreamBuilder
                 // 非同期処理の結果を元にWidgetを作れる
-                child: StreamBuilder<QuerySnapshot>(
-                  // 投稿メッセージ一覧を取得（非同期処理）
-                  // 投稿日時でソート
-                  stream: Firestore.instance
-                      .collection('guest')
-                      .document(user.email)
-                      .collection('message')
-                      .orderBy('date', descending: true)
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    // データが取得できた場合
-                    if (snapshot.hasData) {
-                      final List<DocumentSnapshot> documents =
-                          snapshot.data.documents;
-                      // 取得した投稿メッセージ一覧を元にリスト表示
-                      return ListView(
-                        reverse: true,
-                        children: documents.map((document) {
-                          return Card(
-                            margin: document['email'] == 'gk3gogogo@gmail.com'
-                                ? EdgeInsets.fromLTRB(0, 10, 50, 0)
-                                : EdgeInsets.fromLTRB(50, 10, 0, 0),
-                            child: Container(
+                child: Container(
+                  color: Colors.orange[50],
+                  child: StreamBuilder<QuerySnapshot>(
+                    // 投稿メッセージ一覧を取得（非同期処理）
+                    // 投稿日時でソート
+                    stream: Firestore.instance
+                        .collection('guest')
+                        .document(user.email)
+                        .collection('message')
+                        .orderBy('date', descending: true)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      // データが取得できた場合
+                      if (snapshot.hasData) {
+                        final List<DocumentSnapshot> documents =
+                            snapshot.data.documents;
+                        // 取得した投稿メッセージ一覧を元にリスト表示
+                        return ListView(
+                          reverse: true,
+                          children: documents.map((document) {
+                            return Bubble(
+                              stick: true,
+                              padding: BubbleEdges.all(10),
+                              margin: document['email'] == 'gk3gogogo@gmail.com'
+                                  ? BubbleEdges.only(top: 15, right: 50)
+                                  : BubbleEdges.only(top: 15, left: 50),
+                              alignment:
+                                  document['email'] == 'gk3gogogo@gmail.com'
+                                      ? Alignment.topLeft
+                                      : Alignment.topRight,
                               color: document['email'] == 'gk3gogogo@gmail.com'
-                                  ? Colors.cyan[50]
-                                  : Colors.cyan[200],
-                              child: ListTile(
-                                leading:
-                                    document['email'] == 'gk3gogogo@gmail.com'
-                                        ? Icon(Icons.star)
-                                        : null,
-                                title: Text(document['text']),
-                                trailing:
-                                    document['email'] == 'gk3gogogo@gmail.com'
-                                        ? null
-                                        : Icon(Icons.star),
+                                  ? Colors.white
+                                  : Colors.orange[300],
+                              nip: document['email'] == 'gk3gogogo@gmail.com'
+                                  ? BubbleNip.leftTop
+                                  : BubbleNip.rightTop,
+                              child: Text(
+                                document['text'],
+                                style: DefaultTextStyle.of(context)
+                                    .style
+                                    .apply(fontSizeFactor: 1.2),
                               ),
-                            ),
-                          );
-                        }).toList(),
+                            );
+                          }).toList(),
+                        );
+                      }
+                      // データが読込中の場合
+                      return Center(
+                        child: Text('読込中...'),
                       );
-                    }
-                    // データが読込中の場合
-                    return Center(
-                      child: Text('読込中...'),
-                    );
-                  },
+                    },
+                  ),
                 ),
               ),
-              SizedBox(height: 70),
+              Container(
+                height: 70,
+                color: Colors.orange[50],
+              ),
             ],
           ),
           SafeArea(
@@ -329,7 +357,7 @@ class _ChatPageState extends State<ChatPage> {
                 Container(
                   height: 60,
                   padding: EdgeInsets.fromLTRB(15, 0, 0, 0),
-                  color: Colors.cyan,
+                  color: Colors.orange,
                   child: Row(
                     children: <Widget>[
                       Flexible(
@@ -351,7 +379,7 @@ class _ChatPageState extends State<ChatPage> {
                       IconButton(
                         icon: Icon(
                           Icons.done_outline,
-                          color: Colors.cyan[800],
+                          color: Colors.white,
                         ),
                         onPressed: () async {
                           if (messageText != '') {
