@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -275,7 +274,7 @@ class _ChatPageState extends State<ChatPage> {
               } else {
                 await Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) {
-                    return SelfIntroPage(guest['mail']);
+                    return ChatPage();
                   }),
                 );
               }
@@ -663,32 +662,6 @@ class _ListChatPageState extends State<ListChatPage> {
           ),
         ],
       ),
-    );
-  }
-}
-
-// 自己紹介トWidget
-class SelfIntroPage extends StatefulWidget {
-  final String mailad;
-  const SelfIntroPage(this.mailad);
-
-  @override
-  _SelfIntroPageState createState() => _SelfIntroPageState();
-}
-
-class _SelfIntroPageState extends State<SelfIntroPage> {
-  // 入力した投稿メッセージ
-  final _messageTextController = TextEditingController();
-  String messageText = '';
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.cyan,
-        title: Text('チャット'),
-      ),
-      body: Text(widget.mailad),
     );
   }
 }
