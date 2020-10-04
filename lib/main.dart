@@ -238,11 +238,11 @@ class _ChatPageState extends State<ChatPage> {
             icon: Icon(Icons.person),
             color: Colors.white,
             onPressed: () async {
-              var okuharayn = await Firestore.instance
+              var guest = await Firestore.instance
                   .collection('guest')
                   .document(user.email)
                   .get();
-              if (okuharayn['okuharayn']) {
+              if (guest['okuharayn']) {
                 await Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) {
                     return ListPage();
@@ -251,7 +251,7 @@ class _ChatPageState extends State<ChatPage> {
               } else {
                 await Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) {
-                    return ChatPage();
+                    return SelfIntroPage(guest['mail']);
                   }),
                 );
               }
@@ -620,6 +620,32 @@ class _ListChatPageState extends State<ListChatPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// 自己紹介トWidget
+class SelfIntroPage extends StatefulWidget {
+  final String mailad;
+  const SelfIntroPage(this.mailad);
+
+  @override
+  _SelfIntroPageState createState() => _SelfIntroPageState();
+}
+
+class _SelfIntroPageState extends State<SelfIntroPage> {
+  // 入力した投稿メッセージ
+  final _messageTextController = TextEditingController();
+  String messageText = '';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.cyan,
+        title: Text('チャット'),
+      ),
+      body: Text(widget.mailad),
     );
   }
 }
