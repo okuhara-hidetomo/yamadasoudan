@@ -1,8 +1,12 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bubble/bubble.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 
 void main() {
@@ -356,10 +360,21 @@ class _ChatPageState extends State<ChatPage> {
               children: [
                 Container(
                   height: 60,
-                  padding: EdgeInsets.fromLTRB(15, 0, 0, 0),
+                  padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
                   color: Colors.orange,
                   child: Row(
                     children: <Widget>[
+                      IconButton(
+                        icon: Icon(
+                          Icons.add_photo_alternate,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+                        onPressed: () {},
+                      ),
+                      Container(
+                        width: 5,
+                      ),
                       Flexible(
                         child: TextFormField(
                           decoration: InputDecoration(
