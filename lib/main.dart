@@ -1,12 +1,8 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bubble/bubble.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_picker/image_picker.dart';
 
 void main() {
   // 最初に表示するWidget
@@ -329,12 +325,17 @@ class _ChatPageState extends State<ChatPage> {
                               nip: document['email'] == 'gk3gogogo@gmail.com'
                                   ? BubbleNip.leftTop
                                   : BubbleNip.rightTop,
-                              child: Text(
-                                document['text'],
-                                style: DefaultTextStyle.of(context)
-                                    .style
-                                    .apply(fontSizeFactor: 1.2),
-                              ),
+                              child: document['textyn']
+                                  ? Text(
+                                      document['text'],
+                                      style: DefaultTextStyle.of(context)
+                                          .style
+                                          .apply(fontSizeFactor: 1.2),
+                                    )
+                                  : Image.asset(
+                                      'images/rogoicon.png',
+                                      width: 200,
+                                    ),
                             );
                           }).toList(),
                         );
@@ -410,7 +411,8 @@ class _ChatPageState extends State<ChatPage> {
                                 .setData({
                               'text': messageText,
                               'email': email,
-                              'date': date
+                              'date': date,
+                              'textyn': true
                             });
                             await Firestore.instance
                                 .collection('guest') // コレクションID指定
@@ -573,7 +575,7 @@ class _ListChatPageState extends State<ListChatPage> {
                       .collection('guest')
                       .document(widget.mailad)
                       .collection('message')
-                      .orderBy('date')
+                      .orderBy('date', descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
                     // データが取得できた場合
@@ -582,13 +584,35 @@ class _ListChatPageState extends State<ListChatPage> {
                           snapshot.data.documents;
                       // 取得した投稿メッセージ一覧を元にリスト表示
                       return ListView(
+                        reverse: true,
                         children: documents.map((document) {
-                          return Card(
-                            margin: EdgeInsets.fromLTRB(0, 5, 50, 0),
-                            child: ListTile(
-                              leading: Icon(Icons.star),
-                              title: Text(document['text']),
-                            ),
+                          return Bubble(
+                            stick: true,
+                            padding: BubbleEdges.all(10),
+                            margin: document['email'] == 'gk3gogogo@gmail.com'
+                                ? BubbleEdges.only(top: 15, right: 50)
+                                : BubbleEdges.only(top: 15, left: 50),
+                            alignment:
+                                document['email'] == 'gk3gogogo@gmail.com'
+                                    ? Alignment.topLeft
+                                    : Alignment.topRight,
+                            color: document['email'] == 'gk3gogogo@gmail.com'
+                                ? Colors.white
+                                : Colors.orange[300],
+                            nip: document['email'] == 'gk3gogogo@gmail.com'
+                                ? BubbleNip.leftTop
+                                : BubbleNip.rightTop,
+                            child: document['textyn']
+                                ? Text(
+                                    document['text'],
+                                    style: DefaultTextStyle.of(context)
+                                        .style
+                                        .apply(fontSizeFactor: 1.2),
+                                  )
+                                : Image.asset(
+                                    'images/rogoicon.png',
+                                    width: 200,
+                                  ),
                           );
                         }).toList(),
                       );
@@ -644,7 +668,8 @@ class _ListChatPageState extends State<ListChatPage> {
                               .setData({
                             'text': messageText,
                             'email': 'gk3gogogo@gmail.com',
-                            'date': date
+                            'date': date,
+                            'textyn': true
                           });
                           await Firestore.instance
                               .collection('guest') // コレクションID指定
