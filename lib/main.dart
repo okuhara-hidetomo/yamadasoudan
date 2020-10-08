@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bubble/bubble.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 void main() {
   // 最初に表示するWidget
@@ -235,6 +238,7 @@ class _ChatPageState extends State<ChatPage> {
     // ユーザー情報を受け取る
     final UserState userState = Provider.of<UserState>(context);
     final FirebaseUser user = userState.user;
+    File imageFile;
 
     return Scaffold(
       appBar: AppBar(
@@ -269,9 +273,12 @@ class _ChatPageState extends State<ChatPage> {
                 );
               } else {
                 await Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) {
-                    return ChatPage();
-                  }),
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return NameChangePage();
+                    },
+                    fullscreenDialog: true,
+                  ),
                 );
               }
             },
@@ -332,8 +339,8 @@ class _ChatPageState extends State<ChatPage> {
                                           .style
                                           .apply(fontSizeFactor: 1.2),
                                     )
-                                  : Image.asset(
-                                      'images/rogoicon.png',
+                                  : Image.network(
+                                      document['url'],
                                       width: 200,
                                     ),
                             );
@@ -370,7 +377,36 @@ class _ChatPageState extends State<ChatPage> {
                           color: Colors.white,
                           size: 30,
                         ),
-                        onPressed: () {},
+                        onPressed: () async {
+                          final date = DateTime.now()
+                              .toLocal()
+                              .toIso8601String(); // 現在の日時
+                          final email = user.email;
+                          final picker = ImagePicker();
+                          final pickedFile = await picker.getImage(
+                              source: ImageSource.gallery);
+                          imageFile = File(pickedFile.path);
+                          final storage = FirebaseStorage.instance;
+                          StorageTaskSnapshot snapshot = await storage
+                              .ref()
+                              .child(" ${email}/${date} ")
+                              .putFile(imageFile)
+                              .onComplete;
+                          final String url =
+                              await snapshot.ref.getDownloadURL();
+                          // 投稿データ用ドキュメント作成
+                          await Firestore.instance
+                              .collection('guest') // コレクションID指定
+                              .document(email)
+                              .collection('message')
+                              .document(date)
+                              .setData({
+                            'url': url,
+                            'email': email,
+                            'date': date,
+                            'textyn': false,
+                          });
+                        },
                       ),
                       Container(
                         width: 5,
@@ -407,7 +443,7 @@ class _ChatPageState extends State<ChatPage> {
                                 .collection('guest') // コレクションID指定
                                 .document(email)
                                 .collection('message')
-                                .document()
+                                .document(date)
                                 .setData({
                               'text': messageText,
                               'email': email,
@@ -686,6 +722,46 @@ class _ListChatPageState extends State<ListChatPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class NameChangePage extends StatefulWidget {
+  @override
+  _NameChangePageState createState() => _NameChangePageState();
+}
+
+class _NameChangePageState extends State<NameChangePage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.orange,
+        title: Text('名前変更'),
+      ),
+      body: Container(
+        color: Colors.orange[50],
+        child: Column(children: <Widget>[
+          Expanded(
+            child: Column(
+              children: <Widget>[
+                SizedBox(
+                  height: 50,
+                ),
+                Center(
+                  child: Container(
+                    height: 200,
+                    width: 300,
+                    child: Card(
+                      child: Text('あいうえお'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ]),
       ),
     );
   }
