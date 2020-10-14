@@ -34,6 +34,8 @@ dependencies:
   bubble: ^1.1.9+1
   image_picker: ^0.6.7+11
   firebase_storage: ^3.1.6
+  flutter_app_badger: ^1.1.2
+  shared_preferences: ^0.5.12
 
 
 
