@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "610694263287",
+    "firebase_url": "https://yamada-34453445.firebaseio.com",
+    "project_id": "yamada-34453445",
+    "storage_bucket": "yamada-34453445.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:610694263287:android:6bd6e9b926e9717b0afef2",
+        "android_client_info": {
+          "package_name": "yamadasoudan.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "610694263287-8rrit3klnrnlv7jtm7v3mfh30jll11tq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTcwZ3Tp7FolpcHWMR41wFUSaT5j3Q2Vs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "610694263287-8rrit3klnrnlv7jtm7v3mfh30jll11tq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
